@@ -1,24 +1,54 @@
-import { Router } from "express";
-import { 
-  verify, 
-  check, 
-  getStatus,  // Import the new function
-  batchVerify, 
-  approvePendingVerification, 
-  getPendingVerificationCount 
-} from '../controllers/KYC.js';
+import { Contract, Wallet, providers, ethers } from "ethers"
+import { KYCverifyABI } from "../config/constant.js"
 
-const router = Router();
+export const verify = async (request, res) => {
+    try {
+        const userAddress = request.body.address
 
-router.post('/verify', verify);              // 1. Verify user
-router.get('/status/:userAddress', getStatus); // 2. Check if verified
+        const KYCAddress = process.env.KYC_CONTRACT_ADDRESS
 
-// existing endpoints
-router.post('/check', check);
-router.post('/batch-verify', batchVerify);
-router.post('/approve-pending', approvePendingVerification);
-router.post('/pending-count', getPendingVerificationCount);
+        const provider = new providers.JsonRpcProvider(process.env.RPC_PROVIDER_URL)
 
-export default router;
+        return res.status(200).json({ status: "status" })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ message: error })
+    }
+}
 
-//After updates
+export const check = async (req, res) => {
+    try {
+        const address = req.body.address
+
+        const KYCAddress = process.env.KYC_CONTRACT_ADDRESS
+
+        const provider = new providers.JsonRpcProvider(process.env.RPC_PROVIDER_URL)
+
+        return res.status(200).json({ status: "status" })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ message: error })
+    }
+}
+
+//My function 
+export const getStatus = async (req, res) => {
+  try {
+    const userAddress = req.params.userAddress;
+    const Address = process.env.CONTRACT_ADDRESS;
+    const provider = new providers.JsonRpcProvider(process.env.RPC_PROVIDER_URL);
+    const signer = new Wallet(process.env.WALLET_PRIVATE_KEY, provider);
+    const contract = new Contract(Address, erc20ABI, signer);
+
+    const isVerified = await contract.check(userAddress);
+
+    return res.status(200).json({ 
+      address: userAddress,
+      isVerified: isVerified,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error.message });
+  }
+};
